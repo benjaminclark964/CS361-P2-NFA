@@ -19,6 +19,7 @@ public class NFA implements NFAInterface {
 	Set<NFAState> finalStates;
 	Set<NFAState> startStates;
 	Set<NFAState> eClosureStates;
+	
 	Set<Character> abc;
 	
 	NFAState startState;
@@ -27,6 +28,7 @@ public class NFA implements NFAInterface {
 	 * Constructor for an NFA
 	 */
 	public NFA() {
+		
 		allStates = new LinkedHashSet<NFAState>();
 		finalStates = new LinkedHashSet<NFAState>();
 		startStates = new LinkedHashSet<NFAState>();
@@ -36,6 +38,7 @@ public class NFA implements NFAInterface {
 
 	@Override
 	public void addStartState(String name) {
+		
 		NFAState nfaStartState = new NFAState(name);
 		startState = nfaStartState;
 		startStates.add(startState);
@@ -44,51 +47,52 @@ public class NFA implements NFAInterface {
 
 	@Override
 	public void addState(String name) {
+		
 		NFAState state = new NFAState(name);
 		allStates.add(state);
-		
 	}
 
 	@Override
 	public void addFinalState(String name) {
+		
 		NFAState nfaFinalState = new NFAState(name, true);
 		finalStates.add(nfaFinalState);
 		allStates.add(nfaFinalState);
-		//System.out.println(allStates.toString());
 	}
 
 	@Override
 	public void addTransition(String fromState, char onSymb, String toState) {
-		abc.add(onSymb);
 		
+		abc.add(onSymb);
 	}
 
 	@Override
 	public Set<? extends State> getStates() {
+		
 		return allStates;
 	}
 
 	@Override
 	public Set<? extends State> getFinalStates() {
-		// TODO Auto-generated method stub
+	
 		return finalStates;
 	}
 
 	@Override
 	public State getStartState() {
-		// TODO Auto-generated method stub
+
 		return startState;
 	}
 
 	@Override
 	public Set<Character> getABC() {
-		// TODO Auto-generated method stub
+		
 		return abc;
 	}
 
 	@Override
 	public DFA getDFA() {
-		// TODO Auto-generated method stub
+		
 		DFA dfa = new DFA();
 		dfa.addFinalState(finalStates.toString());
 		dfa.addStartState(startStates.toString());
