@@ -5,6 +5,13 @@ import java.util.Set;
 import fa.State;
 import fa.dfa.DFA;
 
+**
+* 
+* @author Benjamin Clark and Kyle Tupper 
+* 
+* This class creates a NFA and makes a corresponding DFA
+*
+*/
 public class NFA implements NFAInterface {
 
 	@Override
