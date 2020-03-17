@@ -28,13 +28,15 @@ public class NFA implements NFAInterface {
 
 	@Override
 	public void addStartState(String name) {
-		// TODO Auto-generated method stub
+		NFAState startState = new NFAState(name);
+		allStates.add(startState);
 		
 	}
 
 	@Override
 	public void addState(String name) {
-		// TODO Auto-generated method stub
+		NFAState state = new NFAState(name);
+		allStates.add(state);
 		
 	}
 
