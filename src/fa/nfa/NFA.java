@@ -1,18 +1,30 @@
 package fa.nfa;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import fa.State;
 import fa.dfa.DFA;
 
-**
-* 
-* @author Benjamin Clark and Kyle Tupper 
-* 
-* This class creates a NFA and makes a corresponding DFA
-*
-*/
+/**
+ * 
+ * @author Benjamin Clark and Kyle Tupper 
+ * 
+ * This class creates a NFA and makes a corresponding DFA
+ *
+ */
 public class NFA implements NFAInterface {
+	
+	Set<NFAState> allStates;
+	Set<Character> abc;
+	
+	/**
+	 * Constructor for an NFA
+	 */
+	public NFA() {
+		allStates = new LinkedHashSet<NFAState>();
+		abc = new LinkedHashSet<Character>();
+	}
 
 	@Override
 	public void addStartState(String name) {
@@ -28,8 +40,9 @@ public class NFA implements NFAInterface {
 
 	@Override
 	public void addFinalState(String name) {
-		// TODO Auto-generated method stub
-		
+		NFAState nfaFinalState = new NFAState(name, true);
+		allStates.add(nfaFinalState);
+		//System.out.println(allStates.toString());
 	}
 
 	@Override
