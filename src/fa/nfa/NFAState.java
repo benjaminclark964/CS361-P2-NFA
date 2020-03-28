@@ -1,6 +1,7 @@
 package fa.nfa;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 
 /**
  * 
@@ -12,7 +13,7 @@ import java.util.HashMap;
 public class NFAState extends fa.State {
 	
 	boolean isFinal;
-	private HashMap<Character, NFAState> delta;
+	private HashMap<Character, LinkedHashSet<NFAState>> delta;
 	
 	/**
 	 * Constructor for a non-final state
@@ -20,8 +21,8 @@ public class NFAState extends fa.State {
 	 */
 	public NFAState(String name) {
 		
-		this.name = name;
-		delta = new HashMap<Character, NFAState>();
+		initDefault(name);
+		isFinal = false;
 	}
 	
 	/**
@@ -31,9 +32,13 @@ public class NFAState extends fa.State {
 	 */
 	public NFAState(String name, boolean isFinal) {
 		
-		this.name = name;
+		initDefault(name);
 		this.isFinal = isFinal;
-		delta = new HashMap<Character, NFAState>();
+	}
+	
+	private void initDefault(String name) {
+		this.name = name;
+		delta = new HashMap<Character, LinkedHashSet<NFAState>>();
 	}
 	
 	/**
@@ -42,14 +47,30 @@ public class NFAState extends fa.State {
 	 * @param name	Name of state
 	 */
 	public void addTransition(char onsymb, NFAState name) {
-		delta.put(onsymb, name);
+		LinkedHashSet<NFAState> states = delta.get(onsymb);
+		
+		if(states == null) {
+			states = new LinkedHashSet<NFAState>();	
+		}
+			states.add(name);
+			delta.put(onsymb, states);
+		
 	}
 	
 	/**
 	 * Gets to a certain state depending upon the alphabet symbol
 	 * @param onsymb alphabet symbol used for transition
 	 */
-	public void getTo(char onsymb) {
-		delta.get(onsymb);
+	public LinkedHashSet<NFAState> getTo(char onsymb) {
+		LinkedHashSet<NFAState> states = delta.get(onsymb);
+		
+		if(states == null) {
+			return new LinkedHashSet<NFAState>();
+		}
+		if(onsymb == 'e') {
+			states.add(this);
+		}
+		
+		return states;
 	}
 }

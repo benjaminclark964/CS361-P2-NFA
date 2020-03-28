@@ -17,7 +17,6 @@ public class NFA implements NFAInterface {
 	
 	Set<NFAState> allStates;
 	Set<NFAState> finalStates;
-	Set<NFAState> startStates;
 	Set<NFAState> eClosureStates;
 	
 	Set<Character> abc;
@@ -31,7 +30,6 @@ public class NFA implements NFAInterface {
 		
 		allStates = new LinkedHashSet<NFAState>();
 		finalStates = new LinkedHashSet<NFAState>();
-		startStates = new LinkedHashSet<NFAState>();
 		eClosureStates = new LinkedHashSet<NFAState>();
 		abc = new LinkedHashSet<Character>();
 	}
@@ -41,7 +39,7 @@ public class NFA implements NFAInterface {
 		
 		NFAState nfaStartState = new NFAState(name);
 		startState = nfaStartState;
-		startStates.add(startState);
+		
 		allStates.add(startState);
 	}
 
@@ -59,11 +57,33 @@ public class NFA implements NFAInterface {
 		finalStates.add(nfaFinalState);
 		allStates.add(nfaFinalState);
 	}
+	
+	/**
+	 * Returns the state if it is a valid state
+	 * @param name of NFAState
+	 * @return NFAState
+	 */
+	private NFAState getState(String name) {
+		
+		NFAState retVal= null;
+		
+		for(NFAState state: allStates) {
+			if(state.getName().equals(name)) {
+				retVal = state;
+				break;
+			}
+		}
+		return retVal;
+	}
 
 	@Override
 	public void addTransition(String fromState, char onSymb, String toState) {
 		
-		abc.add(onSymb);
+		getState(fromState).addTransition(onSymb, getState(toState));
+		
+		if(!abc.contains(onSymb) && onSymb != 'e') {
+			abc.add(onSymb);
+		}
 	}
 
 	@Override
@@ -95,20 +115,41 @@ public class NFA implements NFAInterface {
 		
 		DFA dfa = new DFA();
 		dfa.addFinalState(finalStates.toString());
-		dfa.addStartState(startStates.toString());
+		dfa.addStartState(startState.toString());
+		for(NFAState state : allStates) {
+			eClosureStates = eClosure(state);
+		}
+		System.out.println(eClosureStates.toString());
+		
 		return dfa;
 	}
 
 	@Override
 	public Set<NFAState> getToState(NFAState from, char onSymb) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		return from.getTo(onSymb);
 	}
 
 	@Override
 	public Set<NFAState> eClosure(NFAState s) {
-		// TODO Auto-generated method stub
-		return null;
+		  
+	    if(s.getTo('e') != null) {
+	    	
+	    	for(NFAState state: s.getTo('e')) {
+	    		if(eClosureStates.contains(s)) {
+	    			break;
+	    		} else {
+		    		eClosureStates.add(state);
+		    		eClosure(state);
+	    		}
+	    	}
+	    } else {
+	    	if(!eClosureStates.contains(s)) {
+	    		eClosureStates.add(s);
+	    	}
+	    }
+	    
+	    return eClosureStates;
 	}
 
 }
