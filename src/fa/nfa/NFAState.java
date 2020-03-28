@@ -67,9 +67,7 @@ public class NFAState extends fa.State {
 		if(states == null) {
 			return new LinkedHashSet<NFAState>();
 		}
-		if(onsymb == 'e') {
-			states.add(this);
-		}
+		
 		
 		return states;
 	}
