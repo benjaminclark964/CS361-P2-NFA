@@ -17,7 +17,7 @@ public class NFA implements NFAInterface {
 	
 	Set<NFAState> allStates;
 	Set<NFAState> finalStates;
-	Set<NFAState> eClosureStates;
+	Set<NFAState> statesVisited;
 	Set<NFAState> startStateSet;
 	
 	Set<Character> abc;
@@ -31,7 +31,7 @@ public class NFA implements NFAInterface {
 		
 		allStates = new LinkedHashSet<NFAState>();
 		finalStates = new LinkedHashSet<NFAState>();
-		eClosureStates = new LinkedHashSet<NFAState>();
+		statesVisited = new LinkedHashSet<NFAState>();
 		startStateSet = new LinkedHashSet<NFAState>();
 		abc = new LinkedHashSet<Character>();
 	}
@@ -118,6 +118,7 @@ public class NFA implements NFAInterface {
 		DFA dfa = new DFA();
 		Set<NFAState> nfaStartState = eClosure(startState);
 		//System.out.println(nfaStartState.toString());
+		statesVisited.clear();
 		Set<NFAState> nfaFinalState = eClosure(finalStates.iterator().next());
 		//System.out.println(nfaFinalState.toString());
 		dfa.addStartState(nfaStartState.toString());
@@ -139,12 +140,14 @@ public class NFA implements NFAInterface {
 		Set<NFAState> statesFrom_e = s.getTo('e');
 		Set<NFAState> retVal = new LinkedHashSet<NFAState>();
 		
-		if(!statesFrom_e.isEmpty()) {
+		if(!statesFrom_e.isEmpty() && !statesVisited.contains(s)) {
 			for(NFAState state : statesFrom_e) {
 				if(!retVal.contains(state)) {
 					retVal.add(state);
+					statesVisited.add(state);
 					if(!retVal.contains(s)) {
 						retVal.add(s);
+						statesVisited.add(s);
 					}
 					eClosure(state);
 				}
