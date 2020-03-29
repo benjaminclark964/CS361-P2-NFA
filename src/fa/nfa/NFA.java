@@ -143,8 +143,11 @@ public class NFA implements NFAInterface {
 					eClosure(state);
 				}
 			}
+		} else {
+			eClosureStates.add(s);
 		}
 		
 		return eClosureStates;
 	}
+	
 }
