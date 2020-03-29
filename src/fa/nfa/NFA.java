@@ -18,6 +18,7 @@ public class NFA implements NFAInterface {
 	Set<NFAState> allStates;
 	Set<NFAState> finalStates;
 	Set<NFAState> eClosureStates;
+	Set<NFAState> startStateSet;
 	
 	Set<Character> abc;
 	
@@ -31,6 +32,7 @@ public class NFA implements NFAInterface {
 		allStates = new LinkedHashSet<NFAState>();
 		finalStates = new LinkedHashSet<NFAState>();
 		eClosureStates = new LinkedHashSet<NFAState>();
+		startStateSet = new LinkedHashSet<NFAState>();
 		abc = new LinkedHashSet<Character>();
 	}
 
@@ -38,9 +40,9 @@ public class NFA implements NFAInterface {
 	public void addStartState(String name) {
 		
 		NFAState nfaStartState = new NFAState(name);
+		startStateSet.add(nfaStartState);
 		startState = nfaStartState;
-		
-		allStates.add(startState);
+		allStates.add(nfaStartState);
 	}
 
 	@Override
@@ -101,7 +103,7 @@ public class NFA implements NFAInterface {
 	@Override
 	public State getStartState() {
 
-		return startState;
+		return startStateSet.iterator().next();
 	}
 
 	@Override
@@ -114,12 +116,12 @@ public class NFA implements NFAInterface {
 	public DFA getDFA() {
 		
 		DFA dfa = new DFA();
-		dfa.addFinalState(finalStates.toString());
-		dfa.addStartState(startState.toString());
-		for(NFAState state: allStates) {
-			eClosure(state);
-		}
-		System.out.println(eClosureStates.toString());
+		Set<NFAState> nfaStartState = eClosure(startState);
+		//System.out.println(nfaStartState.toString());
+		Set<NFAState> nfaFinalState = eClosure(finalStates.iterator().next());
+		//System.out.println(nfaFinalState.toString());
+		dfa.addStartState(nfaStartState.toString());
+		dfa.addFinalState(nfaFinalState.toString());
 		
 		
 		return dfa;
@@ -135,19 +137,44 @@ public class NFA implements NFAInterface {
 	public Set<NFAState> eClosure(NFAState s) {
 		
 		Set<NFAState> statesFrom_e = s.getTo('e');
+		Set<NFAState> retVal = new LinkedHashSet<NFAState>();
 		
 		if(!statesFrom_e.isEmpty()) {
 			for(NFAState state : statesFrom_e) {
-				if(!eClosureStates.contains(state)) {
-					eClosureStates.add(state);
+				if(!retVal.contains(state)) {
+					retVal.add(state);
+					if(!retVal.contains(s)) {
+						retVal.add(s);
+					}
 					eClosure(state);
 				}
 			}
 		} else {
-			eClosureStates.add(s);
+			retVal.add(s);
 		}
-		
-		return eClosureStates;
+	
+		return retVal;
 	}
+	
+//    public Set<NFAState> eClosure(NFAState state)
+//    {
+//        Set<NFAState> temp = new LinkedHashSet<>();
+//        Set<NFAState> statesVisited = new LinkedHashSet<>();
+////        if(!state.getTo('e').equals(new LinkedHashSet<NFAState>())){
+//        if(!state.getTo('e').isEmpty() && !statesVisited.contains(state)){
+//            for(NFAState fromNFA : state.getTo('e')){
+//                if(!this.eClosureStates.contains(fromNFA)) {
+//                    this.eClosureStates.add(fromNFA);
+//                    eClosure(fromNFA);
+//                }
+//            }
+//        }
+//        else{
+//            this.eClosureStates.add(state);
+//        }
+////        what you can reach with "e"
+////        set of states
+//        return this.eClosureStates;
+//    }
 	
 }
