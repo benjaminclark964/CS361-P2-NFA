@@ -1,6 +1,9 @@
 package fa.nfa;
 
+import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
 
 import fa.State;
@@ -16,6 +19,7 @@ import fa.dfa.DFA;
 public class NFA implements NFAInterface {
 	
 	Set<NFAState> allStates;
+	Set<NFAState> nonFinalNonStartStates;
 	Set<NFAState> finalStates;
 	Set<NFAState> statesVisited;
 	Set<NFAState> startStateSet;
@@ -33,6 +37,7 @@ public class NFA implements NFAInterface {
 		finalStates = new LinkedHashSet<NFAState>();
 		statesVisited = new LinkedHashSet<NFAState>();
 		startStateSet = new LinkedHashSet<NFAState>();
+		nonFinalNonStartStates = new LinkedHashSet<NFAState>();
 		abc = new LinkedHashSet<Character>();
 	}
 
@@ -50,6 +55,7 @@ public class NFA implements NFAInterface {
 		
 		NFAState state = new NFAState(name);
 		allStates.add(state);
+		nonFinalNonStartStates.add(state);
 	}
 
 	@Override
@@ -118,11 +124,14 @@ public class NFA implements NFAInterface {
 		DFA dfa = new DFA();
 		Set<NFAState> nfaStartState = eClosure(startState);
 		//System.out.println(nfaStartState.toString());
-		statesVisited.clear();
 		Set<NFAState> nfaFinalState = eClosure(finalStates.iterator().next());
 		//System.out.println(nfaFinalState.toString());
 		dfa.addStartState(nfaStartState.toString());
 		dfa.addFinalState(nfaFinalState.toString());
+		
+		Queue<Set<NFAState>> q = new LinkedList<Set<NFAState>>();
+		
+		
 		
 		
 		return dfa;
@@ -155,7 +164,7 @@ public class NFA implements NFAInterface {
 		} else {
 			retVal.add(s);
 		}
-	
+		statesVisited.clear();
 		return retVal;
 	}
 	
