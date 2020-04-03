@@ -129,7 +129,50 @@ public class NFA implements NFAInterface {
 		dfa.addStartState(nfaStartState.toString());
 		dfa.addFinalState(nfaFinalState.toString());
 		
+		for(NFAState state: allStates) {
+			if(dfa.getStartState().toString().equals(nfaStartState.toString()) || 
+			   dfa.getFinalStates().toString().equals(nfaFinalState.toString())) {
+				
+				//do nothing
+			} else {
+				dfa.addState(eClosure(state).toString());
+			}
+				
+		}
+		
+		//Real Implementation Here//------------------------------------
+		
 		Queue<Set<NFAState>> q = new LinkedList<Set<NFAState>>();
+		
+		for(NFAState states: allStates) {
+			Set<NFAState> state = eClosure(states);
+			if(!q.contains(state)) {
+				q.add(state);
+			}
+		}
+		
+		while(!q.isEmpty()) {
+			Set<NFAState> currentState = q.remove();
+			for(NFAState state: currentState) {
+				for(char symb: abc) {
+					Set<NFAState> transitionState = null;
+					if(getToState(state, symb).iterator().hasNext()) {
+						transitionState = eClosure(getToState(state, symb).iterator().next());
+					}
+					if(transitionState != null) {
+						dfa.addTransition(currentState.toString(), symb, transitionState.toString());
+					}
+				}
+			}
+		}
+		
+		
+		
+//		System.out.println("I am queue elements");
+//		//see whats in the Queue
+//		while(!q.isEmpty()) {
+//			System.out.println(q.remove());
+//		}
 		
 		
 		
