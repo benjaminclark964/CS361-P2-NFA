@@ -143,11 +143,12 @@ public class NFA implements NFAInterface {
 		//Real Implementation Here//------------------------------------
 		
 		Queue<Set<NFAState>> q = new LinkedList<Set<NFAState>>();
-		
+		LinkedList<Set<NFAState>> qHasContained = new LinkedList<Set<NFAState>>();
 		for(NFAState states: allStates) {
 			Set<NFAState> state = eClosure(states);
 			if(!q.contains(state)) {
 				q.add(state);
+				qHasContained.add(state);
 			}
 		}
 		
@@ -161,7 +162,22 @@ public class NFA implements NFAInterface {
 					}
 					if(transitionState != null) {
 						dfa.addTransition(currentState.toString(), symb, transitionState.toString());
+					} else {
+						transitionState = new LinkedHashSet<NFAState>();
+						
+						if(!qHasContained.contains(transitionState)) {
+							q.add(transitionState);
+							qHasContained.add(transitionState);
+							dfa.addState(transitionState.toString());
+						}
+						
+						dfa.addTransition(currentState.toString(), symb, transitionState.toString());
 					}
+				}
+			}
+			if(currentState.isEmpty()) {
+				for(char symb: abc) {
+					dfa.addTransition(currentState.toString(), symb, currentState.toString());
 				}
 			}
 		}
@@ -176,7 +192,7 @@ public class NFA implements NFAInterface {
 		
 		
 		
-		
+		qHasContained.clear();
 		return dfa;
 	}
 
