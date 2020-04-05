@@ -23,6 +23,7 @@ public class NFA implements NFAInterface {
 	Set<NFAState> finalStates;
 	Set<NFAState> statesVisited;
 	Set<NFAState> startStateSet;
+	Set<NFAState> eClosureStates;
 	
 	Set<Character> abc;
 	
@@ -38,6 +39,7 @@ public class NFA implements NFAInterface {
 		statesVisited = new LinkedHashSet<NFAState>();
 		startStateSet = new LinkedHashSet<NFAState>();
 		nonFinalNonStartStates = new LinkedHashSet<NFAState>();
+		eClosureStates = new LinkedHashSet<NFAState>();
 		abc = new LinkedHashSet<Character>();
 	}
 
@@ -123,119 +125,88 @@ public class NFA implements NFAInterface {
 	public DFA getDFA() {
 		
 		DFA dfa = new DFA();
-		Set<NFAState> nfaStartState = eClosure(startState);
-		Set<NFAState> nfaFinalState = eClosure(finalStates.iterator().next());
-
-		dfa = addInitialStatesToDfa(dfa, nfaStartState, nfaFinalState);
-
-		Queue<Set<NFAState>> q = new LinkedList<Set<NFAState>>();
-		LinkedList<Set<NFAState>> qHasContained = new LinkedList<Set<NFAState>>();
 		
-		for(NFAState states: allStates) {
-			Set<NFAState> state = eClosure(states);
-			if(!q.contains(state)) {
-				q.add(state);
-				qHasContained.add(state);
+		boolean isFinished = false;
+		boolean trapState = false;
+		boolean addedTransitions = false;
+		
+		Queue<Set<NFAState>> q = new LinkedList<Set<NFAState>>();
+		LinkedList<Set<NFAState>> qContained = new LinkedList<Set<NFAState>>();
+		
+		Set<NFAState> dfaStartState = new HashSet<NFAState>();
+		Set<NFAState> closureState = eClosure(startState);
+		dfaStartState.addAll(closureState);
+		
+		for(NFAState state: dfaStartState) {
+			if(state.isFinal()) {
+				isFinished = true;
 			}
 		}
+		
+		if(isFinished == true) {
+			dfa.addFinalState(dfaStartState.toString());
+		}
+		
+		q.add(dfaStartState);
+		qContained.add(dfaStartState);
+		dfa.addStartState(dfaStartState.toString());
 		
 		while(!q.isEmpty()) {
+			
 			Set<NFAState> currentState = q.remove();
-			for(NFAState state: currentState) {
+			Set<NFAState> newStateSet = currentState; 
+			
+			if(currentState.isEmpty() && trapState == true) {
 				for(char symb: abc) {
-					
-					Set<NFAState> transitionState = new LinkedHashSet<NFAState>();
-					Set<NFAState> thisState = new LinkedHashSet<NFAState>();
-					thisState.add(state);
-					
-					//Checks for a transition state
-					if(getToState(state, symb).iterator().hasNext()) {
-						transitionState = eClosure(getToState(state, symb).iterator().next());
-						dfa.addTransition(currentState.toString(), symb, transitionState.toString());
-						
-						//checks that there is no transition state and the state actually exists
-					} else if(!getToState(state, symb).iterator().hasNext() && qHasContained.contains(eClosure(state))
-								&& qHasContained.contains(thisState)) {
-						
-						transitionState = new LinkedHashSet<NFAState>(); //empty set
-						
-						if(!qHasContained.contains(transitionState)) {
-							dfa = AddEmptySetToDFA(transitionState, q, qHasContained, dfa);
-						}
-						
-						dfa.addTransition(currentState.toString(), symb, transitionState.toString());
-					}
+					dfa.addTransition(currentState.toString(), symb, currentState.toString());
 				}
 			}
-			dfa = addEmptyTransitionToStatesIfNeeded(currentState, qHasContained, dfa);
-		}
-		
-		qHasContained.clear();
-		return dfa;
-	}
-	
-	/**
-	 * Adds Initial known States to the DFA
-	 * @param dfa the dfa to be returned
-	 * @param nfaStartState the start state
-	 * @param nfaFinalState the final state
-	 * @return the dfa
-	 */
-	private DFA addInitialStatesToDfa(DFA dfa, Set<NFAState> nfaStartState, 
-			Set<NFAState> nfaFinalState) {
-		
-		dfa.addStartState(nfaStartState.toString());
-		dfa.addFinalState(nfaFinalState.toString());
-		
-		for(NFAState state: allStates) {
-			if(dfa.getStartState().toString().equals(nfaStartState.toString()) || 
-			   dfa.getFinalStates().toString().equals(nfaFinalState.toString())) {
+			
+			for(NFAState states: newStateSet) {
+				Set<NFAState> individualState = new LinkedHashSet<NFAState>();
+				individualState.add(states);
 				
-				//do nothing
-			} else {
-				dfa.addState(eClosure(state).toString());
+				for(char symb: abc) {
+					
+					if(!states.getTo(symb).isEmpty()) {
+						Set<NFAState> transState = states.getTo(symb);
+						closureState = transState;
+						
+						for(NFAState s: transState) {
+							if(s.isFinal()) {
+								isFinished = true;
+							}
+							closureState.addAll(eClosure(s));
+						}
+						newStateSet = closureState;
+						addedTransitions = true;
+						
+					} else if(states.getTo(symb).isEmpty() && qContained.contains(individualState)
+							&& addedTransitions == false) {
+						
+						newStateSet = new LinkedHashSet<NFAState>();
+						trapState = true;
+					} 
+					
+					if(!qContained.contains(newStateSet)) {
+						q.add(newStateSet);
+						qContained.add(newStateSet);
+						
+						if(isFinished == true) {
+							dfa.addFinalState(newStateSet.toString());
+						} else {
+							dfa.addState(newStateSet.toString());
+						}
+					}
+						
+					
+						dfa.addTransition(currentState.toString(), symb, newStateSet.toString());
+						isFinished = false;
+				}
 			}
-				
-		}
-		return dfa;
-	}
-	
-	/**
-	 * 
-	 * @param transitionState
-	 * @param q
-	 * @param qHasContained
-	 * @param dfa
-	 * @return
-	 */
-	private DFA AddEmptySetToDFA(Set<NFAState> transitionState, 
-			Queue<Set<NFAState>> q, LinkedList<Set<NFAState>> qHasContained,
-			DFA dfa) {
-		
-		if(!qHasContained.contains(transitionState)) {
-			q.add(transitionState);
-			qHasContained.add(transitionState);
-			dfa.addState(transitionState.toString());
+			addedTransitions = false;
 		}
 		
-		return dfa;
-	}
-	
-	/**
-	 * adds empty transitions to states if needed
-	 * @param currentState the currentState being checked
-	 * @param allQElements all elements that have been in the queue
-	 * @param dfa the dfa
-	 * @return dfa
-	 */
-	private DFA addEmptyTransitionToStatesIfNeeded(Set<NFAState> currentState, 
-			LinkedList<Set<NFAState>> allQElements, DFA dfa) {
-		
-		if(currentState.isEmpty() && allQElements.contains(new LinkedHashSet<NFAState>())) {
-			for(char symb: abc) {
-				dfa.addTransition(currentState.toString(), symb, currentState.toString());
-			}
-		}
 		return dfa;
 	}
 
@@ -266,6 +237,7 @@ public class NFA implements NFAInterface {
 		} else {
 			retVal.add(s);
 		}
+		
 		statesVisited.clear();
 		return retVal;
 	}
