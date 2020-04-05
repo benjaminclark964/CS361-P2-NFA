@@ -145,6 +145,7 @@ public class NFA implements NFAInterface {
 		
 		if(isFinished == true) {
 			dfa.addFinalState(dfaStartState.toString());
+			isFinished = false;
 		}
 		
 		q.add(dfaStartState);
