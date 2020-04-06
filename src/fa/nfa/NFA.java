@@ -154,45 +154,76 @@ public class NFA implements NFAInterface {
 		
 		while(!q.isEmpty()) {
 			
-			Set<NFAState> currentState = q.remove();
-			Set<NFAState> newStateSet = currentState; 
-			
-			if(currentState.isEmpty() && trapState == true) {
+			Set<NFAState> queueState = q.remove();
+			Set<NFAState> newStateSet = new LinkedHashSet<NFAState>(); 
+			Set<NFAState> currentState = queueState;
+
+			if(queueState.isEmpty() && trapState == true) {
 				for(char symb: abc) {
-					dfa.addTransition(currentState.toString(), symb, currentState.toString());
+					dfa.addTransition(queueState.toString(), symb, queueState.toString());
 				}
 			}
 			
-			for(NFAState states: newStateSet) {
+			boolean bigSetFlag = false;
+			
+			for(char symb: abc) {
+			int sizeOfQueueState = queueState.size();
+			for(NFAState states: currentState) {
+				
 				Set<NFAState> individualState = new LinkedHashSet<NFAState>();
 				individualState.add(states);
 				
-				for(char symb: abc) {
-					
 					if(!states.getTo(symb).isEmpty()) {
 						Set<NFAState> transState = states.getTo(symb);
 						closureState = transState;
 						
+						//gets closure states from each state
 						for(NFAState s: transState) {
 							if(s.isFinal()) {
 								isFinished = true;
 							}
 							closureState.addAll(eClosure(s));
 						}
-						newStateSet = closureState;
+						
+						//checks size of state and adds accordingly
+						if(sizeOfQueueState > 1) {
+							newStateSet.addAll(closureState);
+							bigSetFlag = true;
+							addedTransitions = true;
+							sizeOfQueueState--;
+							continue;
+						} else if(sizeOfQueueState == 1 && bigSetFlag == false){
+							newStateSet = closureState;
+						} else if(sizeOfQueueState == 1 && bigSetFlag == true) {
+							newStateSet.addAll(closureState);
+						}
+						
 						addedTransitions = true;
 						
+						//adds trap state
 					} else if(states.getTo(symb).isEmpty() && qContained.contains(individualState)
 							&& addedTransitions == false) {
 						
 						newStateSet = new LinkedHashSet<NFAState>();
 						trapState = true;
-					} 
+						
+						//if a certain state has no transition, but does not need a trap state
+					} else {
+						if(sizeOfQueueState > 1) {
+							sizeOfQueueState--;
+						}
+						if(addedTransitions == false) {
+							continue;
+						}
+						
+					}
 					
+					//adds new element to queue
 					if(!qContained.contains(newStateSet)) {
 						q.add(newStateSet);
 						qContained.add(newStateSet);
 						
+						//checks if newStateSet is a final state
 						if(isFinished == true) {
 							dfa.addFinalState(newStateSet.toString());
 						} else {
@@ -200,12 +231,13 @@ public class NFA implements NFAInterface {
 						}
 					}
 						
-					
-						dfa.addTransition(currentState.toString(), symb, newStateSet.toString());
+						dfa.addTransition(queueState.toString(), symb, newStateSet.toString());
 						isFinished = false;
+						newStateSet = new LinkedHashSet<NFAState>();
 				}
+				addedTransitions = false;
 			}
-			addedTransitions = false;
+			
 		}
 		
 		return dfa;
