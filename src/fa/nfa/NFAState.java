@@ -36,6 +36,10 @@ public class NFAState extends fa.State {
 		this.isFinal = isFinal;
 	}
 	
+	public boolean isFinal() {
+		return this.isFinal;
+	}
+	
 	private void initDefault(String name) {
 		this.name = name;
 		delta = new HashMap<Character, LinkedHashSet<NFAState>>();
@@ -67,7 +71,6 @@ public class NFAState extends fa.State {
 		if(states == null) {
 			return new LinkedHashSet<NFAState>();
 		}
-		
 		
 		return states;
 	}
